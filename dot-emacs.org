@@ -1,0 +1,763 @@
+#+TITLE:  Emacs Configuration File
+#+AUTHOR: Fatma Basak Aydemir
+#+EMAIL:  aydemir@disi.unitn.it
+
+This is my =.emacs= file, written using [[http://www.orgmode.org][org-mode]], so that I can
+organize it and take notes on all the complexity.
+
+  - The =tab= key opens/close a particular section
+  - Shift + =tab= cycles between the outline and full text
+  - Render it with:  =C-c C-v t=
+  - Creates a file:  =~/.emacs-ext.el=
+  - Load it during from the =.emacs= file, like:
+
+#+BEGIN_EXAMPLE
+  ;; Load our Literate Programming version of our Dot Emacs
+  ;; file, from file: ~/Dropbox/emacs.d/dot-emacs.org
+  (load-file "~/.emacs-ext.el")
+#+END_EXAMPLE
+
+* Introduction
+
+  This file is really a /script/ that generates my Emacs configuration
+  file. For all of this to work, you need version 24.
+
+#+BEGIN_HTML
+  <p>
+    You can download the <a href="dot-emacs.org">original org-mode
+    file</a> or view the <a href="dot-emacs.el">tangled end results</a>.
+  </p>
+#+END_HTML
+
+  We begin this initialization script with a warning not to edit the
+  generated file:
+
+#+NAME: Note
+#+BEGIN_SRC elisp :comments off
+  ;;; ------------------------------------------
+  ;;; Do not edit the generated file, as it has
+  ;;; been generated, as a tangled file, by the
+  ;;; fandifluous org-mode.
+  ;;;
+  ;;; Source: ~/work/dot-files/emacs.dotemacs.org
+  ;;; ------------------------------------------
+#+END_SRC
+
+** Installing Dependencies
+
+   Emacs already comes bundled to edit most files, like Java and Ruby.
+   However, some of the new stuff that I use isn't bundled, yet.
+
+*** Install Needed Packages
+
+    Here is the list that should be installed to begin.
+    Install them all with a =C-c C-c= inside this block:
+
+#+BEGIN_SRC elisp :tangle no 
+  (let ((my-packages (list
+   'auctex
+   'ac-nrepl
+   'auto-complete
+   'clojure-mode
+   'clojurescript-mode
+   'coffee-mode
+   'color-theme
+   'color-theme-sanityinc-tomorrow
+   'elein
+   'flymake
+   'flymake-jshint
+   'flyspell
+   'git-commit-mode
+   'gitconfig-mode
+   'gitignore-mode
+   'graphviz-dot-mode
+   'handlebars-mode
+   'htmlize
+   'js-comint
+   'js2-mode
+   'json-mode
+   'magit
+   'mac-key-mode
+   'markdown-mode
+   'mustache-mode
+   'nlinum
+   'nrepl
+   'org
+   'org-mime
+   'org-presie
+   'paredit
+   'plantuml-mode
+   'scala-mode
+   'smex
+   'yasnippet
+   'yasnippet-bundle
+
+    )))
+
+    (unless package-archive-contents
+      (package-refresh-contents))
+    (dolist (package my-packages)
+       (unless (package-installed-p package)
+        (package-install package))))
+
+#+END_SRC
+
+   Anything that you don't install above, may cause problems in the
+   code below.  So, either install it, or comment out its code section
+   (by adding a =:tangle no= at the end of the first line of code).
+
+   The following sections discuss installation of libraries that are
+   not available via ELPA.
+
+*** PlantUML
+
+    The [[http://plantuml.sourceforge.net][PlantUML project]] allows you to draw UML diagrams with textual descriptions.
+    A sweet feature for literate programmers. Download [[http://plantuml.sourceforge.net/download.html][the Jar file]] and put it in
+    your =bin= directory:
+
+#+BEGIN_EXAMPLE
+  curl -o ~/bin/plantuml.jar http://sourceforge.net/projects/plantuml/files/plantuml.jar/download
+#+END_EXAMPLE
+
+*** Org-Mode Installation
+
+    The [[http://orgmode.org][org-mode]] program is so critical, that I want a version > 7.9.
+    Download a version and un-pack it in =~/.emacs.d= and create a
+    symlink to it called: =~/.emacs.d/org=
+
+    From this point, we expect this it to be in this spot.
+
+* General Settings
+
+** Extra Packages
+
+   Extra packages not available via the package manager go in my
+   personal stash at: =$HOME/.emacs.d=
+
+#+BEGIN_SRC elisp
+  (add-to-list 'load-path "~/.emacs.d/")
+#+END_SRC
+
+** Package Manager
+
+   Emacs has become like every other operating system, and now has a
+   [[http://tromey.com/elpa/][package manager]] with its own collection of repositories. Of
+   course, now, instead of trying to figure out and maintain
+   packages, we have to keep track of what packages live on what
+   repos. This is [[http://batsov.com/articles/2012/02/19/package-management-in-emacs-the-good-the-bad-and-the-ugly/][an improvement]].
+
+   *NB:* We want to add the [[http://marmalade-repo.org/][Marmalade repository]].
+
+#+BEGIN_SRC elisp
+  ; (load "~/.emacs.d/elpa/package.el") Needed for version 23 only!
+
+  (require 'package)
+
+  (setq package-archives '(("org"       . "http://orgmode.org/elpa/")
+                           ("gnu"       . "http://elpa.gnu.org/packages/")
+                           ("tromey"    . "http://tromey.com/elpa/")
+                           ("marmalade" . "http://marmalade-repo.org/packages/")))
+#+END_SRC
+
+   While we can now do a =package-list-packages=, you can install and
+   everything is good, however, we can't =require= any of these
+   packages (in order to customize them in this file) until we do
+   this:
+
+#+BEGIN_SRC elisp
+  (package-initialize)
+  ;(require 'redo+)
+#+END_SRC
+
+** Variables
+
+   General settings about me that other packages can use. The biggest
+   problem is guessing my email address based on what computer I am using:
+
+#+BEGIN_SRC elisp
+;;Ben kimim :)
+(setq user-full-name "Fatma Başak Aydemir")
+(setq user-mail-address "aydemir@disi.unitn.it")
+(setq user-website "http://www.disi.unitn.it/~aydemir") 
+#+END_SRC
+
+*** Tabs vs Spaces
+
+   I have learned to distrust tabs in my source code, so let's make
+   sure that we only have spaces.
+
+#+BEGIN_SRC elisp
+  (setq-default indent-tabs-mode nil)
+  (setq tab-width 2)
+#+END_SRC
+
+** Font Settings
+
+   I love syntax highlighting.
+
+#+BEGIN_SRC elisp
+  (global-font-lock-mode 1)
+#+END_SRC
+
+   Specify the default font as =Source Code Pro=, which should already
+   be [[http://blogs.adobe.com/typblography/2012/09/source-code-pro.html][downloaded]] and installed.
+
+#+BEGIN_SRC elisp :tangle no
+  (set-default-font "Source Code Pro")
+  (set-face-attribute 'default nil :font "Source Code Pro" :height 140)
+  (set-face-font 'default "Source Code Pro")
+#+END_SRC
+
+   While I do like the =Anonymous Pro= font (and usually have it download and
+   installed), I don't like it as much.
+
+#+BEGIN_SRC elisp :tangle no
+  (set-default-font "Anonymous Pro")
+  (set-face-attribute 'default nil :font "Anonymous Pro" :height 140)
+  (set-face-font 'default "Anonymous Pro")
+#+END_SRC
+
+** Windows size and position
+#+BEGIN_SRC elisp
+(setq default-frame-alist
+      '((top . 20) (left . -2)
+        (width . 80) (height . 49)
+        ))
+#+END_SRC
+
+** Color Theme
+
+   We use the color theme project and followed [[http://www.nongnu.org/color-theme/][these instructions]].
+   We now can do =M-x color-theme-<TAB> RET=
+
+#+BEGIN_SRC elisp
+  (require 'color-theme)
+#+END_SRC
+
+   The color themes work quite well, except they don't know about the
+   org-mode source code blocks, so we need to set up a couple
+   functions that we can use to set them.
+
+#+BEGIN_SRC elisp
+  (defun org-src-color-blocks-light ()
+    "Colors the block headers and footers to make them stand out more for lighter themes"
+    (interactive)
+    (custom-set-faces
+     '(org-block-begin-line 
+      ((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF"))))
+     '(org-block-background
+       ((t (:background "#FFFFEA"))))
+     '(org-block-end-line
+       ((t (:overline "#A7A6AA" :foreground "#008ED1" :background "#EAEAFF")))))
+
+     ;; Looks like the minibuffer issues are only for v23
+     ; (set-face-foreground 'minibuffer "black")
+     ; (set-face-foreground 'minibuffer-prompt "red")
+  )
+  
+  (defun org-src-color-blocks-dark ()
+    "Colors the block headers and footers to make them stand out more for dark themes"
+    (interactive)
+    (custom-set-faces
+     '(org-block-begin-line 
+       ((t (:foreground "#008ED1" :background "#002E41"))))
+     '(org-block-background
+       ((t (:background "#111111"))))
+     '(org-block-end-line
+       ((t (:foreground "#008ED1" :background "#002E41")))))
+  
+     ;; Looks like the minibuffer issues are only for v23
+     ; (set-face-foreground 'minibuffer "white")
+     ; (set-face-foreground 'minibuffer-prompt "white")
+  )
+#+END_SRC
+
+   My main reason for wanting to use the color theme project is to
+   switch between /black on white/ during the day, and /white on
+   black/ at night.
+
+#+BEGIN_SRC elisp
+  (defun color-theme-my-default ()
+    "Tries to set up a normal color scheme"
+    (interactive)
+    (color-theme-sanityinc-tomorrow-day)
+    (org-src-color-blocks-light))
+  
+  ;; During the day, we use the "standard" theme:
+  (global-set-key (kbd "<f9> d") 'color-theme-my-default)
+  
+  ;; A good late-night scheme that isn't too harsh
+  (global-set-key (kbd "<f9> l") (lambda () (interactive)
+                                   (color-theme-sanityinc-tomorrow-eighties)
+                                   (org-src-color-blocks-dark)))
+  
+  ;; Programming late into the night
+  (global-set-key (kbd "<f9> m") (lambda () (interactive)
+                                   (color-theme-sanityinc-tomorrow-bright)
+                                   (org-src-color-blocks-dark)))
+  
+  ;; Too harsh? Use the late night theme
+  (global-set-key (kbd "<f9> n") (lambda () (interactive)
+                                   (color-theme-sanityinc-tomorrow-night)
+                                   (org-src-color-blocks-dark)))
+#+END_SRC
+
+** Macintosh
+
+   I like the ability to use the Command key to turn a standard Emacs
+   into a more Macintosh-specific application. (See [[http://stackoverflow.com/questions/162896/emacs-on-mac-os-x-leopard-key-bindings][these online notes]])
+
+#+BEGIN_SRC elisp :tangle no
+  (when (eq system-type 'darwin)
+    ; (require 'redo+)
+    (require 'mac-key-mode)
+    (mac-key-mode 1)
+  
+    (define-key mac-key-mode-map [(alt +)] 'text-scale-increase)
+    (define-key mac-key-mode-map [(alt _)] 'text-scale-decrease)
+    (define-key mac-key-mode-map [(alt l)] 'goto-line))  
+#+END_SRC
+
+** More Key Definitions
+
+   I like the ability to move the current line up or down by just
+   doing =S-M-up= and =S-M-down= (just like in Eclipse):
+
+#+BEGIN_SRC elisp
+  ;(load-library "line-move")
+  (global-set-key (kbd "RET") 'newline-and-indent)
+  (global-set-key (kbd "C-;") 'comment-or-uncomment-region)
+  (global-set-key (kbd "M-/") 'hippie-expand)
+#+END_SRC
+
+** Miscellaneous Settings
+
+*** IDO (Interactively DO Things)
+
+    According to [[http://www.masteringemacs.org/articles/2010/10/10/introduction-to-ido-mode/][Mickey]], IDO is the greatest thing.
+
+#+BEGIN_SRC elisp
+  (setq ido-enable-flex-matching t)
+  (setq ido-everywhere t)
+  (ido-mode 1)
+  (setq ido-enable-flex-matching t
+      ido-use-virtual-buffers t)
+ (setq ido-file-extensions-order '(".org" ".tex"))
+ ;;Ignore file extensions pdf and dvi
+(setq completion-ignored-extensions (remove ".pdf" completion-ignored-extensions)) 
+(setq completion-ignored-extensions (remove ".dvi" completion-ignored-extensions)) 
+#+END_SRC
+
+    I guess you can call =ido-use-url-at-point= with Markdown to jump
+    to the URLs. Perhaps?
+
+*** SMEX
+
+    Built using [[*IDO%20(Interactively%20DO%20Things)][IDO]].
+
+#+BEGIN_SRC elisp :tangle no
+  (require 'smex)
+  (smex-initialize) ; Can be omitted. This might cause a (minimal) delay
+
+  (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+
+  ;; This is our old M-x.
+  (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+#+END_SRC
+
+*** Backup Settings
+
+    This setting moves all backup files to a central location.
+    Got it from [[http://whattheemacsd.com/init.el-02.html][this page]].
+
+#+BEGIN_SRC elisp
+  (setq backup-directory-alist
+        `(("." . ,(expand-file-name
+                   (concat user-emacs-directory "backups")))))
+#+END_SRC
+
+   Make backups of files, even when they're in version control
+
+#+BEGIN_SRC elisp
+  (setq vc-make-backup-files t)
+#+END_SRC
+
+*** Line Numbers
+
+    Let's create keystrokes to turn on/off line numbering:
+
+#+BEGIN_SRC elisp :tangle no
+  ;(define-key mac-key-mode-map [(alt k)] 'nlinum-mode)
+#+END_SRC
+
+    Do we want this to turn on automatically with certain modes?
+
+*** Smart Scan
+
+    Use the =M-n= to search the buffer for the word the cursor is
+    currently pointing. =M-p= to go backwards.
+
+#+BEGIN_SRC elisp :tangle no
+  (load-library "smart-scan")
+#+END_SRC
+*** Bars
+#+BEGIN_SRC elisp
+(scroll-bar-mode -1) ;;No scroll-bar
+(tool-bar-mode -1) ;; No tool bar
+(menu-bar-mode 1) ;; No menu bar
+#+END_SRC
+*** No splash screen and start in org-mode
+#+BEGIN_SRC elisp
+;; Send me straight to *scratch* when loading emacs
+;; Send me to org-mode!
+(setq inhibit-splash-screen t
+      initial-scratch-message nil)
+
+(when (locate-library "org")
+  (setq initial-major-mode 'org-mode))(setq inhibit-startup-message t)
+#+END_SRC
+*** Yes or no
+#+BEGIN_SRC elisp
+(defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+
+** Require a last line
+#+BEGIN_SRC elisp
+(setq require-final-newline t)
+#+END_SRC
+** Show Parantheses
+#+BEGIN_SRC elisp
+(show-paren-mode 1)
+#+END_SRC
+** Better mode-line
+Get rid of the old mode-line and replace with a more informative and organized mode-line
+#+BEGIN_SRC elisp
+(setq-default mode-line-format
+	      (list
+	       " -- "
+
+	       ;; Modified shows *
+	       "["
+	       '(:eval
+		 (if (buffer-modified-p)
+		     "*"
+		   (if buffer-read-only
+		       "!"
+		     " "
+		     )))
+	       "] "
+	       
+	       ;; Buffer (tooltip - file name)
+	       '(:eval (propertize "%b" 'face 'bold 'help-echo (buffer-file-name)))
+	       
+
+	       " "
+	       
+	       ;; Spaces 20 - "buffer"
+	       '(:eval
+		 (make-string
+		  (- 20
+		     (min
+		      20
+		      (length (buffer-name))))
+		  ?-))
+	       
+	       " "
+	       ;; Current (row,column)
+	       "("(propertize "%01l") "," (propertize "%01c") ") "
+	       
+	       ;; Spaces 7 - "(r,c)"
+	       '(:eval
+		 (make-string
+		  (- 7
+		     (min
+		      4
+		      (length (number-to-string (current-column)))
+		      )
+		     (min
+		      3
+		      (length (number-to-string (1+ (count-lines 1 (point)))))))
+		  ?-))
+	       
+	       ;; Percentage of file traversed (current line/total lines)
+	       " ["
+	       '(:eval (number-to-string (/ (* (1+ (count-lines 1 (point))) 100) (count-lines 1 (point-max)))) )
+	       "%%] "
+	       
+	       ;; Spaces 4 - %
+	       '(:eval
+		 (make-string
+		  (- 4 (length (number-to-string (/ (* (count-lines 1 (point)) 100) (count-lines 1 (point-max))))))
+		  ?-))
+	       
+	       ;; Major Mode
+	       " [" '(:eval mode-name) "] "
+	       
+	       ;; Spaces 18 - %
+	       '(:eval
+		 (make-string
+		  (- 18
+		     (min
+		      18
+		      (length mode-name)))
+		  ?-))
+	       
+	       " ("
+
+	       ;; Time
+	       '(:eval (propertize (format-time-string "%H:%M")
+				   'help-echo
+				   (concat (format-time-string "%c; ")
+					   (emacs-uptime "Uptime:%hh"))))
+	       
+	       ;; Fill with '-'
+	       ")"
+
+	       ;; Spaces 13 - Battery info
+	       (if (string= (user-full-name) "root") " --- [SUDO]")
+	       " %-"
+	       ))
+#+END_SRC
+** Back-ups
+#+BEGIN_SRC elisp
+(setq backup-directory-alist `(("." . "~/.saves")))
+(setq backup-by-copying t)
+(setq delete-old-versions t
+  kept-new-versions 6
+  kept-old-versions 2
+  version-control t)
+#+END_SRC
+* Auctex
+** TeX path
+#+BEGIN_SRC elisp
+(setenv "PATH" (concat "/usr/texbin:" (getenv "PATH")))
+#+END_SRC
+** Create PDF
+#+BEGIN_SRC elisp
+(setq-default TeX-PDF-mode t)
+#+END_SRC
+** SyncTeX
+#+BEGIN_SRC elisp
+(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
+
+(setq TeX-source-correlate-method 'synctex)
+
+(add-hook 'LaTeX-mode-hook
+      (lambda()
+        (add-to-list 'TeX-expand-list
+             '("%q" skim-make-url))))
+
+(defun skim-make-url () (concat
+        (TeX-current-line)
+        " "
+        (expand-file-name (funcall file (TeX-output-extension) t)
+            (file-name-directory (TeX-master-file)))
+        " "
+        (buffer-file-name)))
+
+(setq TeX-view-program-list
+  '(("Skim" "/Applications/Skim.app/Contents/SharedSupport/displayline %q")))
+(setq TeX-view-program-selection '((output-pdf "Skim")))
+(setq server-use-tcp t)
+(server-start)
+#+END_SRC
+** Stop Confirmation
+#+BEGIN_SRC elisp
+(defun TeX-command-master (&optional override-confirm)
+  "Run command on the current document.
+
+If a prefix argument OVERRIDE-CONFIRM is given, confirmation will
+depend on it being positive instead of the entry in `TeX-command-list'."
+  (interactive "P")
+  (TeX-command (TeX-command-query (TeX-master-file)) 'TeX-master-file
+	       override-confirm))
+#+END_SRC
+
+** RefTeX
+#+BEGIN_SRC elisp
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq-default TeX-master nil)
+(add-hook 'LaTeX-mode-hook 'visual-line-mode)
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+(setq reftex-plug-into-AUCTeX t)
+#+END_SRC
+* Tools
+** Git
+
+   Git is [[http://emacswiki.org/emacs/Git][already part of Emacs]]. However, [[http://philjackson.github.com/magit/magit.html][Magit]] is sweet.
+   
+#+BEGIN_SRC elisp :tangle no
+  ;(require 'magit)
+  ;(define-key global-map "\M-\C-g" 'magit-status)
+#+END_SRC
+
+** Auto Complete
+
+   This feature scans the code and suggests completions for what you
+   are typing. Useful at times ... annoying at others.
+
+#+BEGIN_SRC elisp
+(require 'auto-complete-config)
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+(ac-config-default)
+#+END_SRC
+
+   Note that we specify where a dictionary lives for each specific
+   language.
+
+** Yas Snippet
+
+   The [[http://code.google.com/p/yasnippet/][yasnippet project]] allows me to create snippets of code that
+   can be brought into a file, based on the language. 
+
+#+BEGIN_SRC elisp
+(add-to-list 'load-path "~/.emacs.d/yasnippet")
+(require 'yasnippet)
+(yas/global-mode 1)
+; (yas/initialize)
+#+END_SRC
+
+   We just have different directories for each:
+
+#+BEGIN_SRC elisp
+(setq yas/snippet-dirs
+      '("~/.emacs.d/snippets"            ;; personal snippets
+        "~/.emacs.d/yasnippet/extras/imported"
+        "~/Dropbox/emacs.d/snippets/javascript-mode"
+        "~/Dropbox/emacs.d/snippets/clojure-mode"
+        "~/Dropbox/emacs.d/snippets/org-mode"
+        "~/Dropbox/emacs.d/snippets/emacs-list-mode"
+        "~/.emacs.d/scala-emacs/contrib/yasnippet/snippets"))
+
+; (mapc 'yas/load-directory yas-snippet-dirs)
+#+END_SRC
+
+** Markdown
+
+   Don't use Markdown nearly as much as I used to, but I'm surprised
+   that the following extension-associations aren't the default:
+
+#+BEGIN_SRC elisp
+  (autoload 'markdown-mode "markdown-mode.el"
+     "Major mode for editing Markdown files" t)
+  (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+  (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+  (add-to-list 'auto-mode-alist '("\\.txt\\'" . markdown-mode))
+#+END_SRC   
+
+** Note Grep
+
+   I use the standard [[http://emacswiki.org/emacs/GrepMode#toc1][grep package]] in Emacs and wrap it so that I
+   can easily search through my notes.
+
+#+BEGIN_SRC elisp
+  (defun ngrep (reg-exp)
+    "Searches the Notes and ORG directory tree for an expression."
+    (interactive "sSearch note directory for: ")
+    (let ((file-ext "*.org *.md *.txt *.markdown")
+          (search-dir "~/Dropbox/org"))
+      (message "Searching in %s" search-dir)
+      (grep-compute-defaults)
+      (rgrep reg-exp file-ext search-dir)))
+  
+  (define-key global-map "\C-x\C-n" 'ngrep)
+  (define-key global-map "\C-x\C-r" 'rgrep)
+#+END_SRC
+
+   Don't forget that after doing a =C-x C-f= to find a file, you can
+   hit another =M-f= to do a find the given directory (and subs).
+
+   Also, you can do a full locate with =C-x C-l=:
+
+#+BEGIN_SRC elisp
+  (define-key global-map "\C-x\C-l" 'locate)
+  (setq locate-command "mdfind")  ;; Use Mac OS X's Spotlight
+#+END_SRC
+
+** Spell Checking
+
+
+   I like spell checking with [[http://www.emacswiki.org/emacs/FlySpell][FlySpell]], which uses =ispell=.
+
+   To build a dictionary hash (seems important now), do this:
+
+#+BEGIN_SRC sh :tangle no
+  buildhash ~/Dropbox/dictionary-personal.txt /opt/local/lib/english.aff ~/Dropbox/dictionary-personal.txt.hash
+#+END_SRC
+
+   Then, we can use it like:
+
+#+BEGIN_SRC elisp
+  (setq ispell-personal-dictionary 
+      (concat (getenv "HOME") "/Dropbox/dictionary-personal.txt"))
+
+  (dolist (hook '(text-mode-hook))
+    (add-hook hook (lambda () (flyspell-mode 1))))
+#+END_SRC
+
+   If I find any =text-mode= derived mode that I don't want to
+   spell-check, then I need to use the following:
+
+#+BEGIN_SRC elisp :tangle no
+  (dolist (hook '(change-log-mode-hook log-edit-mode-hook org-agenda-mode-hook))
+    (add-hook hook (lambda () (flyspell-mode -1))))
+#+END_SRC
+
+** Closing Windows
+
+   I would like Command-W to close a frame, but only if it only has a
+   single window in it. I found this code on [[http://www.emacswiki.org/emacs/frame-cmds.el][this site]].\
+
+#+BEGIN_SRC elisp
+  (defun delete-single-window (&optional window)
+    "Remove WINDOW from the display.  Default is `selected-window'.
+  If WINDOW is the only one in its frame, then `delete-frame' too."
+    (interactive)
+    (save-current-buffer
+      (setq window (or window (selected-window)))
+      (select-window window)
+      (kill-buffer)
+      (if (one-window-p t) 
+          (delete-frame) 
+          (delete-window (selected-window)))))
+  
+  ;(define-key mac-key-mode-map [(alt w)] 'delete-single-window)
+#+END_SRC
+
+** Mail with Gnus
+
+   I would like to hook up my [[http://www.emacswiki.org/emacs/GnusGmail][Gmail with GNUS mail reader]].
+   See these [[http://www.mostlymaths.net/2010/12/emacs-30-day-challenge-using-gnus-to.html][detailed instructions]] if we run into problems.
+   The instructions are contained in [[file:gnus.org][gnus.org]] file.
+
+#+BEGIN_SRC elisp :tangle no
+  (load-library "gnus-config")
+#+END_SRC
+
+** Reading Mail?
+
+   Well, Gnus is pretty gunky. It works, but ...
+   
+#+BEGIN_SRC elisp :tangle no
+(autoload 'vm "~/vm" "Start VM on your primary inbox." t)
+(autoload 'vm-visit-folder "~/vm" "Start VM on an arbitrary folder." t)
+(autoload 'vm-mail "~/vm" "Send a mail message using VM." t)
+(autoload 'vm-submit-bug-report "~/vm" "Send a bug report about VM." t)
+#+END_SRC
+* Technical Artifacts
+
+  Before you can build this on a new system, make sure that you put
+  the cursor over any of these properties, and hit: =C-c C-c=
+
+#+DESCRIPTION: A literate programming version of my Emacs Initialization script, loaded by the .emacs file.
+#+PROPERTY:    results silent
+#+PROPERTY:    tangle ~/.emacs-ext.el
+#+PROPERTY:    eval no-export
+#+PROPERTY:    comments org
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil
+#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
