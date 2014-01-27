@@ -1,31 +1,29 @@
-#+TITLE:  Emacs Configuration File
+#+TITLE:  Emacs Ayar Dosyası
 #+AUTHOR: Fatma Basak Aydemir
 #+EMAIL:  aydemir@disi.unitn.it
 
-This is my =.emacs= file, written using [[http://www.orgmode.org][org-mode]], so that I can
-organize it and take notes on all the complexity.
+Bu dosya benim  [[http://www.orgmode.org][org-mode]] ile yazdığım  =.emacs= dosyam.
 
-  - The =tab= key opens/close a particular section
-  - Shift + =tab= cycles between the outline and full text
-  - Render it with:  =C-c C-v t=
-  - Creates a file:  =~/.emacs-ext.el=
-  - Load it during from the =.emacs= file, like:
+  - =tab= tuşu bölümleri açıp kapatır
+  - =Shift= + =tab= ana taslak ile metin arasında geçiş yapar
+  - =C-c C-v t= kullanarak  =~/.emacs-ext.el= dosyasını oluşturun
+  -  =~/.emacs-ext.el= dosyasını  =.emacs= dosyanızdan aşağıdaki gibi yükleyin
 
 #+BEGIN_EXAMPLE
-  ;; Load our Literate Programming version of our Dot Emacs
-  ;; file, from file: ~/Dropbox/emacs.d/dot-emacs.org
+  ;; Literate Programming ile oluşturduğunuz Dot Emacs dosyasını
+  ;; yükleyin, kaynak: ~/work/dot-files/dot-emacs.org
   (load-file "~/.emacs-ext.el")
 #+END_EXAMPLE
 
-* Introduction
+* Giriş
 
-  This file is really a /script/ that generates my Emacs configuration
-  file. For all of this to work, you need version 24.
+  Bu dosya Emacs ayarlar dosyamı oluşturan bir /betik/tir. Mac OS X 10.9 
+  üzerinde Emacs 24 ile kullanmaktayım.
 
 #+BEGIN_HTML
   <p>
-    You can download the <a href="dot-emacs.org">original org-mode
-    file</a> or view the <a href="dot-emacs.el">tangled end results</a>.
+    <a href="dot-emacs.org"> org-mode dosyasını</a> indirebilir veya  
+    oluşturulmuş <a href="dot-emacs.el"> dosyasını inceleyebilirsiniz</a>.
   </p>
 #+END_HTML
 
