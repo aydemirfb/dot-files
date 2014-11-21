@@ -215,6 +215,7 @@ Asagida yuklendiginden emin olmak istedigimiz paketleri siraliyoruz.
                           magit
                           dsvn
                           psvn
+                          exec-path-from-shell
                           magit-svn
                           marmalade
                           nlinum
@@ -222,6 +223,7 @@ Asagida yuklendiginden emin olmak istedigimiz paketleri siraliyoruz.
                           paredit
                           popup
                           redo+
+                          remember
                           yasnippet)
   "Default packages")
 #+END_SRC
@@ -318,14 +320,18 @@ Parantezleri eslestirelim.
 #+BEGIN_SRC elisp
 ;; cf. http://svn.haxx.se/dev/archive-2011-01/0369.shtml
 ;(require 'psvn)
-(require 'dsvn)
+;(require 'dsvn)
 (require 'vc-svn)
+#+END_SRC
+*** set path
+#+BEGIN_SRC elisp
+(exec-path-from-shell-initialize)
 #+END_SRC
 ** Tema
 Ben hazir temalardan solarized-light'i seviyorum. 
 #+BEGIN_SRC elisp
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-(load-theme 'hickey t)
+(load-theme 'professional t)
 #+END_SRC 
 * AucTeX
 ** TeX path
@@ -578,6 +584,7 @@ Ozellestirdigimiz komutlar
 ** Capture
 Capture ozelligi hizli not alma amaciyla kullandigim bir ozellik.
 #+BEGIN_SRC elisp
+
 (setq org-directory "~/Dropbox/org")
 (setq org-default-notes-file "~/Dropbox/org/refile.org")
 
